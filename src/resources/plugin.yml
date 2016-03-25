@@ -1,0 +1,8 @@
+name: HorseKeep
+main: com.gmail.falistos.HorseKeep.HorseKeep
+version: ${project.version}
+depends: [Vault]
+commands:
+    horse:
+        description: Manage your horses
+        aliases: [h, khorse, keephorse]
