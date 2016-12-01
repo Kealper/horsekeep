@@ -22,7 +22,7 @@ import java.util.Map.Entry;
 
 public class HorseKeep extends JavaPlugin implements Listener
 {
-	public String version = "0.3.4";
+	public String version = "0.3.5";
 
 	public Permission perm = null;
 	public HorseManager manager = null;
@@ -184,7 +184,7 @@ public class HorseKeep extends JavaPlugin implements Listener
         if (e.isCancelled()) {
             return;
         }
-        
+
 		if (this.manager.isHorse(e.getEntity()))
 		{
 			LivingEntity horse = (LivingEntity) e.getEntity();
@@ -257,7 +257,7 @@ public class HorseKeep extends JavaPlugin implements Listener
         if (e.isCancelled()) {
             return;
         }
-        
+
         if(e.getEntity().getShooter() instanceof Player){
                 Player thrower = (Player) e.getEntity().getShooter();
                 Collection<LivingEntity> AffectedEntities = e.getAffectedEntities();
@@ -318,7 +318,7 @@ public class HorseKeep extends JavaPlugin implements Listener
         if (event.isCancelled()) {
             return;
         }
-        
+
         Chunk c = event.getChunk();
 
         Entity[] entities = c.getEntities();
@@ -328,8 +328,27 @@ public class HorseKeep extends JavaPlugin implements Listener
         	{
         		if (this.manager.isOwned(e.getUniqueId()))
         		{
+					EntityType horseType = e.getType();
+
         			// We save horse location
-        			this.manager.saveHorseInfo((Horse) e);
+					if (horseType == EntityType.HORSE) {
+						this.manager.saveHorseInfo((Horse) e);
+
+					} else if (horseType == EntityType.ZOMBIE_HORSE) {
+						this.manager.saveHorseInfo((ZombieHorse) e);
+
+					} else if (horseType == EntityType.SKELETON_HORSE) {
+						this.manager.saveHorseInfo((SkeletonHorse) e);
+
+					} else if (horseType == EntityType.DONKEY) {
+						this.manager.saveHorseInfo((Donkey) e);
+
+					} else if (horseType == EntityType.MULE) {
+						this.manager.saveHorseInfo((Mule) e);
+
+					} else if (horseType == EntityType.LLAMA) {
+						this.manager.saveHorseInfo((Llama) e);
+					}
         		}
         	}
         }
@@ -341,11 +360,11 @@ public class HorseKeep extends JavaPlugin implements Listener
       if (event.isCancelled()) {
           return;
       }
-      
+
       if (this.manager.isHorse(event.getRightClicked()))
       {
 
-        Horse horse = (Horse) event.getRightClicked();
+        LivingEntity horse = (LivingEntity) event.getRightClicked();
 
         if (!this.manager.isOwned(horse.getUniqueId()))
         {
@@ -392,7 +411,10 @@ public class HorseKeep extends JavaPlugin implements Listener
 
         		event.getPlayer().sendMessage(this.getChatPrefix() + this.lang.get("horseProtected").replace("%id", this.manager.getHorseIdentifier(this.manager.getHorseUUID(horse))));
 
-        		if (getConfig().getBoolean("autoTameHorseOnProtect")) { horse.setTamed(true); }
+        		if (getConfig().getBoolean("autoTameHorseOnProtect")) {
+					Tameable tameableEntity = (Tameable) event.getRightClicked();
+					tameableEntity.setTamed(true);
+				}
 
 				this.manager.saveHorseInfo(horse);
         	}
@@ -421,7 +443,7 @@ public class HorseKeep extends JavaPlugin implements Listener
         if (e.isCancelled()) {
             return;
         }
-        
+
     	LivingEntity tamedAnimal = e.getEntity();
     	Player player = (Player) e.getOwner();
 
@@ -437,14 +459,14 @@ public class HorseKeep extends JavaPlugin implements Listener
         if (event.isCancelled()) {
             return;
         }
-        
+
 		if (!(event.getEntered() instanceof Player)) { return; }
 
 		Player player = (Player) event.getEntered();
 
 	    if (this.manager.isHorse(event.getVehicle()))
 	    {
-	    	Horse horse = (Horse) event.getVehicle();
+	    	LivingEntity horse = (LivingEntity) event.getVehicle();
 
 	    	if (this.manager.isOwned(horse.getUniqueId()))
 	    	{

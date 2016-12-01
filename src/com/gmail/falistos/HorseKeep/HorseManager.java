@@ -14,7 +14,7 @@ import java.util.UUID;
  * HorseKeep API
  *
  * @author Falistos/BritaniaCraft
- * @version 0.3.1
+ * @version 0.3.5
  */
 
 public class HorseManager {
@@ -23,7 +23,7 @@ public class HorseManager {
 	private HorseKeep plugin;
 	private HorseData data;
 
-	private EntityType[] horseEntityTypes = {EntityType.HORSE};
+	private EntityType[] horseEntityTypes = {EntityType.HORSE, EntityType.DONKEY, EntityType.MULE, EntityType.ZOMBIE_HORSE, EntityType.SKELETON_HORSE, EntityType.LLAMA};
 
 	public static HorseManager instance;
 
@@ -41,18 +41,19 @@ public class HorseManager {
 		this.data = plugin.getHorseData();
 	}
 
-    public boolean isHorse(Entity entity)
-    {
-    	for (EntityType horseType : horseEntityTypes)
-    	{
-    		if (entity.getType() == horseType)
-    		{
+    public boolean isHorse(Entity entity) {
+    	return isHorse(entity.getType());
+    }
+
+	public boolean isHorse(EntityType type) {
+		for (EntityType horseType: horseEntityTypes) {
+    		if (type == horseType) {
     			return true;
     		}
     	}
 
     	return false;
-    }
+	}
 
     public boolean isOwned(UUID uuid)
     {
@@ -283,7 +284,7 @@ public class HorseManager {
     {
     	if (player.isInsideVehicle())
     	{
-    		if(player.getVehicle().getType() == EntityType.HORSE)
+    		if(isHorse(player.getVehicle().getType()))
     		{
     			return true;
     		}
@@ -347,49 +348,137 @@ public class HorseManager {
     	return null;
     }
 
-    public void store(Horse horse)
-    {
+	// Store different horse types
+	public void store(Entity horse) {
+		EntityType horseType = horse.getType();
+
+		if (horseType == EntityType.HORSE) {
+			store((Horse) horse);
+
+		} else if (horseType == EntityType.ZOMBIE_HORSE) {
+			store((ZombieHorse) horse);
+
+		} else if (horseType == EntityType.SKELETON_HORSE) {
+			store((SkeletonHorse) horse);
+
+		} else if (horseType == EntityType.DONKEY) {
+			store((Donkey) horse);
+
+		} else if (horseType == EntityType.MULE) {
+			store((Mule) horse);
+
+		} else if (horseType == EntityType.LLAMA) {
+			store((Llama) horse);
+		}
+	}
+
+	public void store(Horse horse) {
     	this.data.getHorsesData().set("horses."+horse.getUniqueId().toString()+".stored", true);
 		saveHorseInfo(horse);
     }
 
-	public void saveHorseInfo(Horse horse)
-	{
-		Location loc = horse.getLocation();
-		this.data.getHorsesData().set("horses."+horse.getUniqueId().toString()+".lastpos", loc.getWorld().getName()+":"+loc.getX()+":"+loc.getY()+":"+loc.getZ()+":"+loc.getYaw()+":"+loc.getPitch());
+    public void store(ZombieHorse horse) {
+    	this.data.getHorsesData().set("horses."+horse.getUniqueId().toString()+".stored", true);
+		saveHorseInfo(horse);
+    }
+
+	public void store(SkeletonHorse horse) {
+    	this.data.getHorsesData().set("horses."+horse.getUniqueId().toString()+".stored", true);
+		saveHorseInfo(horse);
+    }
+
+	public void store(Donkey horse) {
+    	this.data.getHorsesData().set("horses."+horse.getUniqueId().toString()+".stored", true);
+		saveHorseInfo(horse);
+    }
+
+	public void store(Mule horse) {
+    	this.data.getHorsesData().set("horses."+horse.getUniqueId().toString()+".stored", true);
+		saveHorseInfo(horse);
+    }
+
+	public void store(Llama horse) {
+    	this.data.getHorsesData().set("horses."+horse.getUniqueId().toString()+".stored", true);
+		saveHorseInfo(horse);
+    }
+
+	// Save details of each horse type given
+	public void saveHorseInfo(ZombieHorse horse) {
+		saveHorseInfo((AbstractHorse) horse);
+	}
+
+	public void saveHorseInfo(SkeletonHorse horse) {
+		saveHorseInfo((AbstractHorse) horse);
+	}
+
+	public void saveHorseInfo(Donkey horse) {
+		saveHorseInfo((ChestedHorse) horse);
+	}
+
+	public void saveHorseInfo(Mule horse) {
+		saveHorseInfo((ChestedHorse) horse);
+	}
+
+	public void saveHorseInfo(Horse horse) {
+		this.data.getHorsesData().set("horses."+horse.getUniqueId().toString()+".style", horse.getStyle().toString());
+		this.data.getHorsesData().set("horses."+horse.getUniqueId().toString()+".color", horse.getColor().toString());
+
+		if (horse.getInventory().getSaddle() != null) {
+        	this.data.getHorsesData().set("horses."+horse.getUniqueId().toString()+".saddled", true);
+    	} else {
+			this.data.getHorsesData().set("horses."+horse.getUniqueId().toString()+".saddled", null);
+		}
+
+    	if (horse.getInventory().getArmor() != null) {
+        	this.data.getHorsesData().set("horses."+horse.getUniqueId().toString()+".armor", horse.getInventory().getArmor());
+    	} else {
+			this.data.getHorsesData().set("horses."+horse.getUniqueId().toString()+".armor", null);
+		}
+
+		saveHorseInfo((AbstractHorse) horse);
+	}
+
+	public void saveHorseInfo(Llama horse) {
+		this.data.getHorsesData().set("horses."+horse.getUniqueId().toString()+".color", horse.getColor().toString());
+		this.data.getHorsesData().set("horses."+horse.getUniqueId().toString()+".strength", horse.getStrength());
+		if (horse.getInventory().getDecor() != null) {
+			this.data.getHorsesData().set("horses."+horse.getUniqueId().toString()+".decor", horse.getInventory().getDecor());
+		}
+
+		saveHorseInfo((ChestedHorse) horse);
+	}
+
+	public void saveHorseInfo(ChestedHorse horse) {
+		if (horse.isCarryingChest()) {
+			this.data.getHorsesData().set("horses."+horse.getUniqueId().toString()+".chestcontent", horse.getInventory().getContents());
+		} else {
+			this.data.getHorsesData().set("horses."+horse.getUniqueId().toString()+".chestcontent", null);
+		}
+
+		saveHorseInfo((AbstractHorse) horse);
+	}
+
+	public void saveHorseInfo(AbstractHorse horse) {
     	this.data.getHorsesData().set("horses."+horse.getUniqueId().toString()+".tamed", horse.isTamed());
-    	this.data.getHorsesData().set("horses."+horse.getUniqueId().toString()+".variant", horse.getVariant().toString());
-    	this.data.getHorsesData().set("horses."+horse.getUniqueId().toString()+".style", horse.getStyle().toString());
-    	this.data.getHorsesData().set("horses."+horse.getUniqueId().toString()+".color", horse.getColor().toString());
     	this.data.getHorsesData().set("horses."+horse.getUniqueId().toString()+".jumpstrength", horse.getJumpStrength());
-    	this.data.getHorsesData().set("horses."+horse.getUniqueId().toString()+".maxhealth", horse.getMaxHealth());
-
-    	if (horse.getCustomName() != null)
-    	{
-    		this.data.getHorsesData().set("horses."+horse.getUniqueId().toString()+".name", horse.getCustomName());
-    	}
-    	else this.data.getHorsesData().set("horses."+horse.getUniqueId().toString()+".name", null);
-
-    	this.data.getHorsesData().set("horses."+horse.getUniqueId().toString()+".lasthealth", horse.getHealth());
     	this.data.getHorsesData().set("horses."+horse.getUniqueId().toString()+".age", horse.getAge());
 
-    	if (horse.getInventory().getSaddle() != null)
-    	{
-        	this.data.getHorsesData().set("horses."+horse.getUniqueId().toString()+".saddled", true);
-    	}
-    	else this.data.getHorsesData().set("horses."+horse.getUniqueId().toString()+".saddled", null);
+    	saveHorseInfo((LivingEntity) horse);
+	}
 
-    	if (horse.getInventory().getArmor() != null)
-    	{
-        	this.data.getHorsesData().set("horses."+horse.getUniqueId().toString()+".armor", horse.getInventory().getArmor());
-    	}
-    	else this.data.getHorsesData().set("horses."+horse.getUniqueId().toString()+".armor", null);
+	public void saveHorseInfo(LivingEntity horse) {
+		Location loc = horse.getLocation();
+		this.data.getHorsesData().set("horses."+horse.getUniqueId().toString()+".lastpos", loc.getWorld().getName()+":"+loc.getX()+":"+loc.getY()+":"+loc.getZ()+":"+loc.getYaw()+":"+loc.getPitch());
+    	this.data.getHorsesData().set("horses."+horse.getUniqueId().toString()+".type", horse.getType().toString());
+    	this.data.getHorsesData().set("horses."+horse.getUniqueId().toString()+".maxhealth", horse.getMaxHealth());
 
-    	if (horse.isCarryingChest())
-    	{
-    		this.data.getHorsesData().set("horses."+horse.getUniqueId().toString()+".chestcontent", horse.getInventory().getContents());
-    	}
-    	else this.data.getHorsesData().set("horses."+horse.getUniqueId().toString()+".chestcontent", null);
+    	if (horse.getCustomName() != null) {
+    		this.data.getHorsesData().set("horses."+horse.getUniqueId().toString()+".name", horse.getCustomName());
+    	} else {
+			this.data.getHorsesData().set("horses."+horse.getUniqueId().toString()+".name", null);
+		}
+
+    	this.data.getHorsesData().set("horses."+horse.getUniqueId().toString()+".lasthealth", horse.getHealth());
 
     	this.data.save();
 	}
@@ -406,61 +495,195 @@ public class HorseManager {
     public void summon(String horseIdentifier, Location loc)
     {
     	this.data.reload();
-
     	UUID horseUUID = this.getHorseUUID(horseIdentifier);
+		EntityType horseType = EntityType.valueOf(this.data.getHorsesData().getString("horses."+horseUUID+".type"));
 
-    	ConfigurationSection horseCfgSection = this.data.getHorsesData().getConfigurationSection("horses."+horseUUID.toString());
+		if (horseType == EntityType.HORSE) {
+			summonHorse(horseUUID, loc);
 
-    	Entity entity = loc.getWorld().spawnEntity(loc, EntityType.HORSE);
-    	Horse spawnedHorse = (Horse) entity;
+		} else if (horseType == EntityType.ZOMBIE_HORSE) {
+			summonZombieHorse(horseUUID, loc);
 
-    	spawnedHorse.setVariant(Horse.Variant.valueOf(this.data.getHorsesData().getString("horses."+horseUUID+".variant")));
-    	spawnedHorse.setColor(Horse.Color.valueOf(this.data.getHorsesData().getString("horses."+horseUUID+".color")));
-    	spawnedHorse.setStyle(Horse.Style.valueOf(this.data.getHorsesData().getString("horses."+horseUUID+".style")));
+		} else if (horseType == EntityType.SKELETON_HORSE) {
+			summonSkeletonHorse(horseUUID, loc);
+
+		} else if (horseType == EntityType.DONKEY) {
+			summonDonkey(horseUUID, loc);
+
+		} else if (horseType == EntityType.MULE) {
+			summonMule(horseUUID, loc);
+
+		} else if (horseType == EntityType.LLAMA) {
+			summonLlama(horseUUID, loc);
+		}
+
+    	this.data.getHorsesData().set("horses."+horseUUID.toString(), null);
+    	this.data.save();
+    }
+
+	// Summons specific types of horses and applies the relevant options to them
+	public void summonHorse(UUID horseUUID, Location loc) {
+		ConfigurationSection horseCfgSection = this.data.getHorsesData().getConfigurationSection("horses."+horseUUID);
+    	Horse spawnedHorse = (Horse) loc.getWorld().spawnEntity(loc, EntityType.HORSE);
+
+    	spawnedHorse.setCustomName(this.data.getHorsesData().getString("horses."+horseUUID+".name"));
+    	spawnedHorse.setMaxHealth(Double.parseDouble(this.data.getHorsesData().getString("horses."+horseUUID+".maxhealth")));
+    	spawnedHorse.setHealth(Double.parseDouble(this.data.getHorsesData().getString("horses."+horseUUID+".lasthealth")));
+    	spawnedHorse.setJumpStrength(Double.parseDouble(this.data.getHorsesData().getString("horses."+horseUUID+".jumpstrength")));
+    	spawnedHorse.setAge(Integer.parseInt(this.data.getHorsesData().getString("horses."+horseUUID+".age")));
+		spawnedHorse.setColor(Horse.Color.valueOf(this.data.getHorsesData().getString("horses."+horseUUID+".color")));
+		spawnedHorse.setStyle(Horse.Style.valueOf(this.data.getHorsesData().getString("horses."+horseUUID+".style")));
+
+    	if (this.data.getHorsesData().getBoolean("horses."+horseUUID+".tamed")) {
+        	spawnedHorse.setTamed(this.data.getHorsesData().getBoolean("horses."+horseUUID+".tamed"));
+    	}
+
+		if (this.data.getHorsesData().getBoolean("horses."+horseUUID+".saddled")) {
+			spawnedHorse.getInventory().setSaddle(new ItemStack(Material.SADDLE));
+		}
+
+		if (this.data.getHorsesData().getString("horses."+horseUUID+".armor") != null) {
+			spawnedHorse.getInventory().setArmor((ItemStack) this.data.getHorsesData().getItemStack("horses."+horseUUID+".armor"));
+		}
+
+		this.data.getHorsesData().createSection("horses."+spawnedHorse.getUniqueId());
+    	this.data.getHorsesData().set("horses."+spawnedHorse.getUniqueId(), horseCfgSection);
+    	this.data.getHorsesData().set("horses."+spawnedHorse.getUniqueId()+".stored", false);
+	}
+
+	public void summonLlama(UUID horseUUID, Location loc) {
+		ConfigurationSection horseCfgSection = this.data.getHorsesData().getConfigurationSection("horses."+horseUUID);
+    	Llama spawnedHorse = (Llama) loc.getWorld().spawnEntity(loc, EntityType.LLAMA);
+
+    	spawnedHorse.setCustomName(this.data.getHorsesData().getString("horses."+horseUUID+".name"));
+    	spawnedHorse.setMaxHealth(Double.parseDouble(this.data.getHorsesData().getString("horses."+horseUUID+".maxhealth")));
+    	spawnedHorse.setHealth(Double.parseDouble(this.data.getHorsesData().getString("horses."+horseUUID+".lasthealth")));
+    	spawnedHorse.setJumpStrength(Double.parseDouble(this.data.getHorsesData().getString("horses."+horseUUID+".jumpstrength")));
+    	spawnedHorse.setAge(Integer.parseInt(this.data.getHorsesData().getString("horses."+horseUUID+".age")));
+		spawnedHorse.setColor(Llama.Color.valueOf(this.data.getHorsesData().getString("horses."+horseUUID+".color")));
+		spawnedHorse.setStrength(this.data.getHorsesData().getInt("horses."+horseUUID+".strength"));
+
+    	if (this.data.getHorsesData().getBoolean("horses."+horseUUID+".tamed")) {
+        	spawnedHorse.setTamed(this.data.getHorsesData().getBoolean("horses."+horseUUID+".tamed"));
+    	}
+
+		if (this.data.getHorsesData().getItemStack("horses."+horseUUID+".decor") != null) {
+			spawnedHorse.getInventory().setDecor(this.data.getHorsesData().getItemStack("horses."+horseUUID+".decor"));
+		}
+
+		if (this.data.getHorsesData().getList("horses."+horseUUID+".chestcontent") != null) {
+			spawnedHorse.setCarryingChest(true);
+
+			ArrayList<ItemStack> conversion = new ArrayList<ItemStack>();
+			for (Object o: this.data.getHorsesData().getList("horses."+horseUUID+".chestcontent")) {
+				conversion.add((ItemStack) o);
+			}
+
+			spawnedHorse.getInventory().setContents(conversion.toArray(new ItemStack[conversion.size()]));
+		}
+
+		this.data.getHorsesData().createSection("horses."+spawnedHorse.getUniqueId());
+    	this.data.getHorsesData().set("horses."+spawnedHorse.getUniqueId(), horseCfgSection);
+    	this.data.getHorsesData().set("horses."+spawnedHorse.getUniqueId()+".stored", false);
+	}
+
+	public void summonDonkey(UUID horseUUID, Location loc) {
+		ConfigurationSection horseCfgSection = this.data.getHorsesData().getConfigurationSection("horses."+horseUUID);
+    	Donkey spawnedHorse = (Donkey) loc.getWorld().spawnEntity(loc, EntityType.DONKEY);
+
     	spawnedHorse.setCustomName(this.data.getHorsesData().getString("horses."+horseUUID+".name"));
     	spawnedHorse.setMaxHealth(Double.parseDouble(this.data.getHorsesData().getString("horses."+horseUUID+".maxhealth")));
     	spawnedHorse.setHealth(Double.parseDouble(this.data.getHorsesData().getString("horses."+horseUUID+".lasthealth")));
     	spawnedHorse.setJumpStrength(Double.parseDouble(this.data.getHorsesData().getString("horses."+horseUUID+".jumpstrength")));
     	spawnedHorse.setAge(Integer.parseInt(this.data.getHorsesData().getString("horses."+horseUUID+".age")));
 
-    	if (this.data.getHorsesData().getBoolean("horses."+horseUUID+".tamed"))
-    	{
+    	if (this.data.getHorsesData().getBoolean("horses."+horseUUID+".tamed")) {
         	spawnedHorse.setTamed(this.data.getHorsesData().getBoolean("horses."+horseUUID+".tamed"));
     	}
 
-    	if (this.data.getHorsesData().getBoolean("horses."+horseUUID+".saddled"))
-    	{
-    		spawnedHorse.getInventory().setSaddle(new ItemStack(Material.SADDLE));
-    	}
+		if (this.data.getHorsesData().getString("horses."+horseUUID+".chestcontent") != null) {
+			spawnedHorse.setCarryingChest(true);
 
-    	if (this.data.getHorsesData().getString("horses."+horseUUID+".armor") != null)
-    	{
-    		ItemStack content;
-    		content = (ItemStack) this.data.getHorsesData().getItemStack("horses."+horseUUID+".armor");
+			ArrayList<ItemStack> conversion = new ArrayList<ItemStack>();
+			for (Object o: this.data.getHorsesData().getList("horses."+horseUUID+".chestcontent")) {
+				conversion.add((ItemStack) o);
+			}
 
-    		spawnedHorse.getInventory().setArmor(content);
-    	}
+			spawnedHorse.getInventory().setContents(conversion.toArray(new ItemStack[conversion.size()]));
+		}
 
-    	if (this.data.getHorsesData().getString("horses."+horseUUID+".chestcontent") != null)
-    	{
-    		spawnedHorse.setCarryingChest(true);
-
-    		ArrayList<ItemStack> conversion = new ArrayList<ItemStack>();
-    		for (Object o : this.data.getHorsesData().getList("horses."+horseUUID+".chestcontent")) conversion.add((ItemStack) o);
-
-     		spawnedHorse.getInventory().setContents(conversion.toArray(new ItemStack[conversion.size()]));
-    	}
-
-    	this.data.getHorsesData().createSection("horses."+spawnedHorse.getUniqueId());
-
+		this.data.getHorsesData().createSection("horses."+spawnedHorse.getUniqueId());
     	this.data.getHorsesData().set("horses."+spawnedHorse.getUniqueId(), horseCfgSection);
-
     	this.data.getHorsesData().set("horses."+spawnedHorse.getUniqueId()+".stored", false);
+	}
 
-    	this.data.getHorsesData().set("horses."+horseUUID.toString(), null);
+	public void summonMule(UUID horseUUID, Location loc) {
+		ConfigurationSection horseCfgSection = this.data.getHorsesData().getConfigurationSection("horses."+horseUUID);
+    	Mule spawnedHorse = (Mule) loc.getWorld().spawnEntity(loc, EntityType.MULE);
 
-    	this.data.save();
-    }
+    	spawnedHorse.setCustomName(this.data.getHorsesData().getString("horses."+horseUUID+".name"));
+    	spawnedHorse.setMaxHealth(Double.parseDouble(this.data.getHorsesData().getString("horses."+horseUUID+".maxhealth")));
+    	spawnedHorse.setHealth(Double.parseDouble(this.data.getHorsesData().getString("horses."+horseUUID+".lasthealth")));
+    	spawnedHorse.setJumpStrength(Double.parseDouble(this.data.getHorsesData().getString("horses."+horseUUID+".jumpstrength")));
+    	spawnedHorse.setAge(Integer.parseInt(this.data.getHorsesData().getString("horses."+horseUUID+".age")));
+
+    	if (this.data.getHorsesData().getBoolean("horses."+horseUUID+".tamed")) {
+        	spawnedHorse.setTamed(this.data.getHorsesData().getBoolean("horses."+horseUUID+".tamed"));
+    	}
+
+		if (this.data.getHorsesData().getString("horses."+horseUUID+".chestcontent") != null) {
+			spawnedHorse.setCarryingChest(true);
+
+			ArrayList<ItemStack> conversion = new ArrayList<ItemStack>();
+			for (Object o: this.data.getHorsesData().getList("horses."+horseUUID+".chestcontent")) {
+				conversion.add((ItemStack) o);
+			}
+
+			spawnedHorse.getInventory().setContents(conversion.toArray(new ItemStack[conversion.size()]));
+		}
+
+		this.data.getHorsesData().createSection("horses."+spawnedHorse.getUniqueId());
+    	this.data.getHorsesData().set("horses."+spawnedHorse.getUniqueId(), horseCfgSection);
+    	this.data.getHorsesData().set("horses."+spawnedHorse.getUniqueId()+".stored", false);
+	}
+
+	public void summonZombieHorse(UUID horseUUID, Location loc) {
+		ConfigurationSection horseCfgSection = this.data.getHorsesData().getConfigurationSection("horses."+horseUUID);
+    	ZombieHorse spawnedHorse = (ZombieHorse) loc.getWorld().spawnEntity(loc, EntityType.ZOMBIE_HORSE);
+
+    	spawnedHorse.setCustomName(this.data.getHorsesData().getString("horses."+horseUUID+".name"));
+    	spawnedHorse.setMaxHealth(Double.parseDouble(this.data.getHorsesData().getString("horses."+horseUUID+".maxhealth")));
+    	spawnedHorse.setHealth(Double.parseDouble(this.data.getHorsesData().getString("horses."+horseUUID+".lasthealth")));
+    	spawnedHorse.setJumpStrength(Double.parseDouble(this.data.getHorsesData().getString("horses."+horseUUID+".jumpstrength")));
+    	spawnedHorse.setAge(Integer.parseInt(this.data.getHorsesData().getString("horses."+horseUUID+".age")));
+
+    	if (this.data.getHorsesData().getBoolean("horses."+horseUUID+".tamed")) {
+        	spawnedHorse.setTamed(this.data.getHorsesData().getBoolean("horses."+horseUUID+".tamed"));
+    	}
+
+		this.data.getHorsesData().createSection("horses."+spawnedHorse.getUniqueId());
+    	this.data.getHorsesData().set("horses."+spawnedHorse.getUniqueId(), horseCfgSection);
+    	this.data.getHorsesData().set("horses."+spawnedHorse.getUniqueId()+".stored", false);
+	}
+
+	public void summonSkeletonHorse(UUID horseUUID, Location loc) {
+		ConfigurationSection horseCfgSection = this.data.getHorsesData().getConfigurationSection("horses."+horseUUID);
+    	SkeletonHorse spawnedHorse = (SkeletonHorse) loc.getWorld().spawnEntity(loc, EntityType.SKELETON_HORSE);
+
+    	spawnedHorse.setCustomName(this.data.getHorsesData().getString("horses."+horseUUID+".name"));
+    	spawnedHorse.setMaxHealth(Double.parseDouble(this.data.getHorsesData().getString("horses."+horseUUID+".maxhealth")));
+    	spawnedHorse.setHealth(Double.parseDouble(this.data.getHorsesData().getString("horses."+horseUUID+".lasthealth")));
+    	spawnedHorse.setJumpStrength(Double.parseDouble(this.data.getHorsesData().getString("horses."+horseUUID+".jumpstrength")));
+    	spawnedHorse.setAge(Integer.parseInt(this.data.getHorsesData().getString("horses."+horseUUID+".age")));
+
+    	if (this.data.getHorsesData().getBoolean("horses."+horseUUID+".tamed")) {
+        	spawnedHorse.setTamed(this.data.getHorsesData().getBoolean("horses."+horseUUID+".tamed"));
+    	}
+
+		this.data.getHorsesData().createSection("horses."+spawnedHorse.getUniqueId());
+    	this.data.getHorsesData().set("horses."+spawnedHorse.getUniqueId(), horseCfgSection);
+    	this.data.getHorsesData().set("horses."+spawnedHorse.getUniqueId()+".stored", false);
+	}
 
     public HorseTeleportResponse teleportHorse(UUID horseUUID, Location loc)
     {
