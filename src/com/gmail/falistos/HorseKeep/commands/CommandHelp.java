@@ -11,13 +11,17 @@ public class CommandHelp {
 		sender.sendMessage("- "+ChatColor.AQUA+"/horse list|l");
 		sender.sendMessage("- "+ChatColor.AQUA+"/horse tp <identifier>");
 		sender.sendMessage("- "+ChatColor.AQUA+"/horse id|setid <identifier> <new-identifier>");
-		sender.sendMessage("- "+ChatColor.AQUA+"/horse tpall");
 		sender.sendMessage("- "+ChatColor.AQUA+"/horse members|m <identifier>");
 		sender.sendMessage("- "+ChatColor.AQUA+"/horse addmember|addm <identifier> <player>");
 		sender.sendMessage("- "+ChatColor.AQUA+"/horse delmember|delm <identifier> <player>");
 		sender.sendMessage("- "+ChatColor.AQUA+"/horse store");
 		sender.sendMessage("- "+ChatColor.AQUA+"/horse summon <identifier>");
 		sender.sendMessage("- "+ChatColor.AQUA+"/horse unprotect|up <identifier>");
-		sender.sendMessage("- "+ChatColor.AQUA+"/horse reload");
+		if (plugin.perm.has(sender, "horsekeep.admin")) {
+			sender.sendMessage("- "+ChatColor.RED+"/horse tpall");
+			sender.sendMessage("- "+ChatColor.RED+"/horse reload");
+			sender.sendMessage("- "+ChatColor.RED+"/horse admin list");
+			sender.sendMessage("- "+ChatColor.RED+"/horse admin transfer <identifier> <player>");
+		}
 	}
 }
