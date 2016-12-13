@@ -5,6 +5,7 @@ import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.scheduler.BukkitScheduler;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,7 +15,7 @@ import java.util.UUID;
  * HorseKeep API
  *
  * @author Falistos/BritaniaCraft
- * @version 0.3.5
+ * @version 0.3.6
  */
 
 public class HorseManager {
@@ -22,6 +23,7 @@ public class HorseManager {
 	private Configuration config;
 	private HorseKeep plugin;
 	private HorseData data;
+	private boolean shouldFlushData;
 
 	private EntityType[] horseEntityTypes = {EntityType.HORSE, EntityType.DONKEY, EntityType.MULE, EntityType.ZOMBIE_HORSE, EntityType.SKELETON_HORSE, EntityType.LLAMA};
 
@@ -39,6 +41,15 @@ public class HorseManager {
 		this.plugin = plugin;
 		this.config = plugin.getConfig();
 		this.data = plugin.getHorseData();
+		this.shouldFlushData = false;
+		Bukkit.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
+			public void run() {
+				if (shouldFlushData) {
+					data.save();
+					shouldFlushData = false;
+				}
+			}
+		}, 20, 1200); // 1200 ticks = 60 seconds
 	}
 
     public boolean isHorse(Entity entity) {
@@ -480,6 +491,7 @@ public class HorseManager {
 
     	this.data.getHorsesData().set("horses."+horse.getUniqueId().toString()+".lasthealth", horse.getHealth());
 
+		this.shouldFlushData = true;
     	this.data.save();
 	}
 

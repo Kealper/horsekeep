@@ -22,7 +22,7 @@ import java.util.Map.Entry;
 
 public class HorseKeep extends JavaPlugin implements Listener
 {
-	public String version = "0.3.5";
+	public String version = "0.3.6";
 
 	public Permission perm = null;
 	public HorseManager manager = null;
