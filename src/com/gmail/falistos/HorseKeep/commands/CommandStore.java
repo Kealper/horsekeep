@@ -5,6 +5,9 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.World;
+
+import java.util.UUID;
 
 public class CommandStore extends ConfigurableCommand {
 	public CommandStore(HorseKeep plugin, CommandSender sender, String[] args)
@@ -21,13 +24,47 @@ public class CommandStore extends ConfigurableCommand {
 			return;
 		}
 
-		if (!plugin.manager.isOnHorse(player))
-		{
-			sender.sendMessage(this.getPrefix() + ChatColor.GOLD + plugin.lang.get("mustRidingHorse"));
-			return;
+		LivingEntity horse = null;
+		boolean isMounted = false;
+
+		if (plugin.manager.isOnHorse(player) && args.length < 2) {
+			horse = (LivingEntity) player.getVehicle();
+			isMounted = true;
+		} else {
+			if (args.length < 2) {
+				player.sendMessage(this.getPrefix() + ChatColor.GOLD + plugin.lang.get("missingHorseIdentifier"));
+				return;
+			}
+			UUID horseUUID = plugin.manager.getHorseUUID(args[2]);
+
+			if (plugin.manager.isStored(horseUUID)) {
+				player.sendMessage(this.getPrefix() + ChatColor.GOLD + plugin.lang.get("horseAlreadyStored"));
+				return;
+			}
+
+			for(World w: this.plugin.getServer().getWorlds()) {
+				for(LivingEntity e: w.getLivingEntities()) {
+
+					if (horseUUID.toString().equalsIgnoreCase(e.getUniqueId().toString())) {
+						if (!e.getLocation().getChunk().isLoaded()) {
+							e.getLocation().getChunk().load();
+						}
+
+						horse = e;
+						break;
+					}
+				}
+
+				if (horse != null) {
+					break;
+				}
+			}
 		}
 
-		LivingEntity horse = (LivingEntity) player.getVehicle();
+		if (horse == null) {
+			sender.sendMessage(this.getPrefix() + ChatColor.GOLD + plugin.lang.get("horseDoesntExists"));
+			return;
+		}
 
 		if (!plugin.manager.isOwned(horse.getUniqueId()))
 		{
@@ -41,7 +78,9 @@ public class CommandStore extends ConfigurableCommand {
 			return;
 		}
 
-		horse.eject();
+		if (isMounted) {
+			horse.eject();
+		}
 
 		plugin.manager.store(horse);
 
