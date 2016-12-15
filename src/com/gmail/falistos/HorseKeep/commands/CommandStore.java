@@ -35,7 +35,7 @@ public class CommandStore extends ConfigurableCommand {
 				player.sendMessage(this.getPrefix() + ChatColor.GOLD + plugin.lang.get("missingHorseIdentifier"));
 				return;
 			}
-			UUID horseUUID = plugin.manager.getHorseUUID(args[2]);
+			UUID horseUUID = plugin.manager.getHorseUUID(args[1]);
 
 			if (plugin.manager.isStored(horseUUID)) {
 				player.sendMessage(this.getPrefix() + ChatColor.GOLD + plugin.lang.get("horseAlreadyStored"));
