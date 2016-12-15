@@ -492,7 +492,6 @@ public class HorseManager {
     	this.data.getHorsesData().set("horses."+horse.getUniqueId().toString()+".lasthealth", horse.getHealth());
 
 		this.shouldFlushData = true;
-    	this.data.save();
 	}
 
     public boolean isStored(UUID horseUUID)
